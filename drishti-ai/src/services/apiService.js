@@ -118,7 +118,7 @@ const callBackend = async (message, history) => {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 35000);
-    const res = await fetch(`${BACKEND_URL}/api/chat`, {
+    const res = await fetch(`${BACKEND_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
