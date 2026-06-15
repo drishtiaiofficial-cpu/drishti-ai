@@ -1,191 +1,90 @@
-// ============================================
-// DRISHTI - API Service
-// Main AI call handler
-// ============================================
+// DRISHTI - Main API Orchestrator
+// BYOK first → Engine fallback
 
-import { APP_CONFIG, getEngineUrl } from '../config/index';
-import { detectProvider } from '../config/providers';
-import { getBYOKSlots, isBYOKEnabled, getUsageToday, incrementUsage } from './storageService';
-import { saveMessage, getContext } from './memoryService';
+import { chatWithEngine } from './api/engineService';
+import {
+  detectProvider, fetchBestModel,
+  callProvider, getActiveSlots, isBYOKEnabled,
+} from './api/byokService';
+import { trackCall } from './analytics/usageService';
 
-const SYSTEM_PROMPT = `You are DRISHTI - a helpful AI assistant. 
-Always respond in the SAME language the user writes in.
-If user writes in Hindi → respond in Hindi.
-If user writes in English → respond in English.
-If user writes in Hinglish → respond in Hinglish.
-Keep responses helpful, short and friendly.`;
+const FREE_LIMIT = 20;
 
-// ============================================
-// MAIN FUNCTION
-// ============================================
-export const sendMessage = async (message, sessionId = 'default') => {
-  const history = getContext(sessionId);
-  saveMessage('user', message, sessionId);
-
-  const byokEnabled = isBYOKEnabled();
-  const slots = getBYOKSlots();
-  const activeSlots = slots.filter(s => s.active && s.apiKey);
-
-  let result;
-  if (byokEnabled && activeSlots.length > 0) {
-    result = await callWithBYOK(message, history, activeSlots);
-  } else {
-    result = await callEngine(message, history);
+export const sendMessage = async (message, history = []) => {
+  // BYOK ON → User की API
+  if (isBYOKEnabled()) {
+    const slots = getActiveSlots();
+    if (slots.length > 0) {
+      const result = await callWithBYOK(message, history, slots);
+      if (result.success) return result;
+    }
   }
 
-  if (result.text) {
-    saveMessage('assistant', result.text, sessionId);
+  // Engine fallback
+  const used = getTodayUsage();
+  if (used >= FREE_LIMIT) {
+    return {
+      success: false,
+      text: `🚫 आज के ${FREE_LIMIT} free messages पूरे!\n\n🔑 Settings → My APIs में key add करो।`,
+      source: 'limit',
+    };
+  }
+
+  const result = await chatWithEngine(message);
+  if (result.success) {
+    incrementUsage();
+    trackCall('engine', 0, 0, true);
   }
   return result;
 };
 
-// ============================================
-// ENGINE CALL
-// ============================================
-const callEngine = async (message, history) => {
-  const used = getUsageToday();
-  const limit = APP_CONFIG.limits.free;
-
-  if (used >= limit) {
-    return {
-      text: `🚫 आज के ${limit} free messages पूरे हो गए!\n\n🔑 Settings → My APIs में Groq की free key add करो।`,
-      source: 'limit',
-      limitReached: true,
-    };
-  }
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), APP_CONFIG.engine.timeout);
-
-    const res = await fetch(getEngineUrl('chat'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message,
-        capability: 'chat',
-        user_id: 0,
-        session_id: 'default',
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error(`Engine error: ${res.status}`);
-    const data = await res.json();
-    incrementUsage();
-
-    return {
-      text: data.response || data.reply || data.message || 'कुछ गड़बड़ हुई।',
-      source: 'engine',
-      model: data.model,
-      remaining: limit - used - 1,
-    };
-  } catch (e) {
-    if (e.name === 'AbortError') {
-      return {
-        text: '⏱️ Server जाग रहा है। 30 seconds बाद दोबारा try करो।',
-        source: 'timeout',
-      };
-    }
-    return getFallback(message);
-  }
-};
-
-// ============================================
-// BYOK CALL
-// ============================================
 const callWithBYOK = async (message, history, slots) => {
-  const messages = [
-    { role: 'system', content: SYSTEM_PROMPT },
-    ...history,
-    { role: 'user', content: message },
-  ];
+  const messages = [...history, { role: 'user', content: message }];
 
   for (const slot of slots) {
+    const start = Date.now();
     try {
       const provider = detectProvider(slot.apiKey, slot.providerName, slot.endpoint);
       if (!provider) continue;
 
-      const result = await callProvider(provider, slot, messages, message);
-      if (result) return { text: result, source: provider.name.toLowerCase() };
+      // Dynamic model - no hardcoding!
+      let model = slot.detectedModel;
+      if (!model) {
+        model = await fetchBestModel(provider, slot.apiKey);
+        if (model) {
+          const slots = JSON.parse(localStorage.getItem('byok_keys') || '[]');
+          const idx = slots.findIndex(s => s.id === slot.id);
+          if (idx >= 0) {
+            slots[idx].detectedModel = model;
+            localStorage.setItem('byok_keys', JSON.stringify(slots));
+          }
+        }
+      }
+
+      const text = await callProvider(provider, slot.apiKey, model, messages);
+      const latency = Date.now() - start;
+      trackCall(provider.id, 0, latency, true);
+
+      if (text) return { success: true, text, source: provider.name, model };
     } catch (e) {
-      console.log(`${slot.providerName} failed:`, e.message);
+      trackCall(slot.providerName || 'unknown', 0, 0, false);
+      console.log('Slot failed:', e.message);
       continue;
     }
   }
-
-  return { text: '⚠️ कोई API काम नहीं कर रही। Settings check करो।', source: 'error' };
+  return { success: false, text: null };
 };
 
-const callProvider = async (provider, slot, messages, message) => {
-  const key = slot.apiKey;
-
-  if (provider.type === 'claude') {
-    const res = await fetch(provider.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: slot.detectedModel || provider.defaultModel,
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: messages.filter(m => m.role !== 'system'),
-      }),
-    });
-    const data = await res.json();
-    return data.content?.[0]?.text;
-  }
-
-  if (provider.type === 'gemini') {
-    const model = slot.detectedModel || provider.defaultModel;
-    const res = await fetch(
-      `${provider.baseUrl}/${model}:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${message}` }] }],
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
-        }),
-      }
-    );
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text;
-  }
-
-  // OpenAI format (Groq, OpenAI, Mistral, OpenRouter, Together)
-  const url = slot.endpoint || provider.baseUrl;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: slot.detectedModel || provider.defaultModel,
-      messages,
-      max_tokens: 1000,
-      temperature: 0.7,
-    }),
-  });
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content;
+const getTodayUsage = () => {
+  const key = `usage_engine_${new Date().toDateString()}`;
+  return JSON.parse(localStorage.getItem(key) || '{}').calls || 0;
 };
 
-// ============================================
-// FALLBACK
-// ============================================
-const getFallback = (message) => {
-  const t = message.toLowerCase();
-  if (t.includes('नमस्ते') || t.includes('hello') || t.includes('hi'))
-    return { text: 'नमस्ते! 😊 Settings में API key add करो बेहतर जवाब के लिए!', source: 'fallback' };
-  if (t.includes('upi') || t.includes('payment'))
-    return { text: 'UPI:\n1. GPay खोलो\n2. Pay करो\n3. Number डालो\n4. Amount\n5. PIN ✅', source: 'fallback' };
-  return { text: '🔑 Settings → My APIs में Groq की free key add करो!', source: 'fallback' };
+const incrementUsage = () => {
+  const key = `usage_engine_${new Date().toDateString()}`;
+  const d = JSON.parse(localStorage.getItem(key) || '{}');
+  d.calls = (d.calls || 0) + 1;
+  localStorage.setItem(key, JSON.stringify(d));
 };
 
 export default { sendMessage };
