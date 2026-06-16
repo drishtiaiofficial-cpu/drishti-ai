@@ -16,6 +16,9 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import BYOKScreen from './src/screens/BYOKScreen';
 import AdminScreen from './src/screens/AdminScreen';
+import APIDashboard from './src/screens/APIDashboard';
+import LegalScreen from './src/screens/LegalScreen';
+import HelpScreen from './src/screens/HelpScreen';
 import LegalScreen from './src/screens/LegalScreen';
 import HelpScreen from './src/screens/HelpScreen';
 
@@ -35,6 +38,9 @@ export default function App() {
     settings: SettingsScreen,
     byok: BYOKScreen,
     admin: AdminScreen,
+    apiDashboard: APIDashboard,
+    legal: LegalScreen,
+    help: HelpScreen,
     legal: LegalScreen,
     help: HelpScreen,
   };
