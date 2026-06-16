@@ -16,6 +16,8 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import BYOKScreen from './src/screens/BYOKScreen';
 import AdminScreen from './src/screens/AdminScreen';
+import LegalScreen from './src/screens/LegalScreen';
+import HelpScreen from './src/screens/HelpScreen';
 
 export default function App() {
   const [screen, setScreen] = React.useState('splash');
@@ -33,6 +35,8 @@ export default function App() {
     settings: SettingsScreen,
     byok: BYOKScreen,
     admin: AdminScreen,
+    legal: LegalScreen,
+    help: HelpScreen,
   };
 
   const Screen = screens[screen] || SplashScreen;
