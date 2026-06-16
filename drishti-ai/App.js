@@ -4,7 +4,6 @@ import { AppProvider } from './src/context/AppContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { SettingsProvider } from './src/context/SettingsContext';
-
 import SplashScreen from './src/screens/SplashScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -16,16 +15,13 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import BYOKScreen from './src/screens/BYOKScreen';
 import AdminScreen from './src/screens/AdminScreen';
+import LegalScreen from './src/screens/LegalScreen';
+import HelpScreen from './src/screens/HelpScreen';
 import APIDashboard from './src/screens/APIDashboard';
-import LegalScreen from './src/screens/LegalScreen';
-import HelpScreen from './src/screens/HelpScreen';
-import LegalScreen from './src/screens/LegalScreen';
-import HelpScreen from './src/screens/HelpScreen';
 
 export default function App() {
   const [screen, setScreen] = React.useState('splash');
   const navigate = (s) => setScreen(s);
-
   const screens = {
     splash: SplashScreen,
     login: LoginScreen,
@@ -38,15 +34,11 @@ export default function App() {
     settings: SettingsScreen,
     byok: BYOKScreen,
     admin: AdminScreen,
+    legal: LegalScreen,
+    help: HelpScreen,
     apiDashboard: APIDashboard,
-    legal: LegalScreen,
-    help: HelpScreen,
-    legal: LegalScreen,
-    help: HelpScreen,
   };
-
   const Screen = screens[screen] || SplashScreen;
-
   return (
     <AppProvider>
       <AuthProvider>
