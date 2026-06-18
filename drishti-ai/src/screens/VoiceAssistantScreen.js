@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity,
   StyleSheet, Animated, Dimensions, ScrollView,
 } from 'react-native';
-import { speak, stop as stopSpeaking, VOICE_PROFILES } from '../services/voice/synthesisService';
+import { speak, stop as stopSpeaking } from '../services/voice/synthesisService';
 import { startRecognition } from '../services/voice/recognitionService';
 import { sendMessage } from '../services/apiService';
 
@@ -33,9 +33,10 @@ export default function VoiceAssistantScreen({ navigate }) {
   const [mode, setMode] = useState('sleeping');
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [isMuted, setIsMuted] = useState(false);
   const [conversation, setConversation] = useState([]);
-  const [showMessages, setShowMessages] = useState(false);
+  const [showMessages, setShowMessages] = useState(true);
 
   const glowAnim = useRef(new Animated.Value(1)).current;
   const wave1 = useRef(new Animated.Value(0.3)).current;
@@ -161,6 +162,7 @@ export default function VoiceAssistantScreen({ navigate }) {
       return;
     }
 
+    setErrorMsg('');
     const recognition = startRecognition({
       lang: 'hi-IN',
       continuous: false,
@@ -177,13 +179,10 @@ export default function VoiceAssistantScreen({ navigate }) {
         if (finalText) processVoiceInput(finalText);
         else { setMode('sleeping'); setTranscript(''); }
       },
-      onError: () => {
+      onError: (err) => {
         recognitionRef.current = null;
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-          processVoiceInput('नमस्ते');
-        } else {
-          setMode('sleeping');
-        }
+        setErrorMsg('Mic error: ' + err);
+        setMode('sleeping');
       },
     });
     recognitionRef.current = recognition;
@@ -196,7 +195,9 @@ export default function VoiceAssistantScreen({ navigate }) {
 
     try {
       const result = await sendMessage(text, chatHistoryRef.current);
-      const aiResponse = result.text || 'कुछ गड़बड़ हुई। दोबारा try करें।';
+      console.log('DRISHTI sendMessage result:', result);
+
+      const aiResponse = (result && result.text) ? result.text : 'खाली जवाब आया - कुछ गड़बड़ है';
 
       chatHistoryRef.current = [
         ...chatHistoryRef.current,
@@ -215,13 +216,15 @@ export default function VoiceAssistantScreen({ navigate }) {
           if (!('speechSynthesis' in window) || !window.speechSynthesis.speaking) {
             setMode('sleeping');
           }
-        }, aiResponse.length * 80);
+        }, Math.max(aiResponse.length * 80, 1500));
       } else {
         setTimeout(() => setMode('sleeping'), 3000);
       }
     } catch (e) {
+      console.error('DRISHTI Voice Error:', e);
+      setErrorMsg('Error: ' + (e.message || String(e)));
+      setResponse('कुछ गड़बड़ हुई: ' + (e.message || 'unknown error'));
       setMode('sleeping');
-      setResponse('कुछ गड़बड़ हुई। दोबारा try करें।');
     }
   };
 
@@ -241,7 +244,7 @@ export default function VoiceAssistantScreen({ navigate }) {
           <Text style={styles.backBtn}>← वापस</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>दृष्टि</Text>
+        <Text style={styles.headerTitle}>दृष्ट</Text>
 
         <View style={styles.headerRight}>
           <TouchableOpacity
@@ -324,6 +327,12 @@ export default function VoiceAssistantScreen({ navigate }) {
           {getModeText()}
         </Text>
 
+        {errorMsg !== '' && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>⚠️ {errorMsg}</Text>
+          </View>
+        )}
+
         {showMessages && (
           <View style={{ width: '100%' }}>
             {transcript !== '' && (
@@ -332,7 +341,7 @@ export default function VoiceAssistantScreen({ navigate }) {
                 <Text style={styles.transcriptText}>{transcript}</Text>
               </View>
             )}
-            {response !== '' && mode === 'speaking' && (
+            {response !== '' && (
               <View style={styles.responseBox}>
                 <Text style={styles.responseLabel}>🔮 दृष्टि:</Text>
                 <Text style={styles.responseText}>{response}</Text>
@@ -386,6 +395,7 @@ export default function VoiceAssistantScreen({ navigate }) {
             setMode('sleeping');
             setTranscript('');
             setResponse('');
+            setErrorMsg('');
           }}
         >
           <Text style={styles.sideBtnIcon}>✕</Text>
@@ -484,7 +494,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     height: 50, marginTop: 14, marginBottom: 6,
   },
-  modeText: { fontSize: 16, fontWeight: '600', marginBottom: 20, textAlign: 'center' },
+  modeText: { fontSize: 16, fontWeight: '600', marginBottom: 12, textAlign: 'center' },
+  errorBox: {
+    backgroundColor: '#1a0a0a', borderRadius: 10, padding: 10,
+    marginBottom: 10, borderWidth: 1, borderColor: '#ff4444', width: '100%',
+  },
+  errorText: { color: '#ff4444', fontSize: 12 },
   transcriptBox: {
     backgroundColor: '#0d1f3c', borderRadius: 12, padding: 12,
     marginBottom: 10, borderWidth: 1, borderColor: '#1a3a6a', width: '100%',
