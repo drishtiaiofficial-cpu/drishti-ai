@@ -1,17 +1,10 @@
-// DRISHTI - Main API Orchestrator
-// BYOK first → Engine fallback
-
 import { chatWithEngine } from './api/engineService';
-import {
-  detectProvider, fetchBestModel,
-  callProvider, getActiveSlots, isBYOKEnabled,
-} from './api/byokService';
+import { detectProvider, fetchBestModel, callProvider, getActiveSlots, isBYOKEnabled, getSlots, saveSlots } from './api/byokService';
 import { trackCall } from './analytics/usageService';
 
 const FREE_LIMIT = 20;
 
 export const sendMessage = async (message, history = []) => {
-  // BYOK ON → User की API
   if (isBYOKEnabled()) {
     const slots = getActiveSlots();
     if (slots.length > 0) {
@@ -20,20 +13,17 @@ export const sendMessage = async (message, history = []) => {
     }
   }
 
-  // Engine fallback
   const used = getTodayUsage();
   if (used >= FREE_LIMIT) {
-    return {
-      success: false,
-      text: `🚫 आज के ${FREE_LIMIT} free messages पूरे!\n\n🔑 Settings → My APIs में key add करो।`,
-      source: 'limit',
-    };
+    return { success: false, text: `🚫 आज के ${FREE_LIMIT} free messages पूरे! Settings → My APIs में key add करो।`, source: 'limit' };
   }
 
   const result = await chatWithEngine(message);
   if (result.success) {
     incrementUsage();
     trackCall('engine', 0, 0, true);
+  } else {
+    trackCall('engine', 0, 0, false);
   }
   return result;
 };
@@ -47,28 +37,21 @@ const callWithBYOK = async (message, history, slots) => {
       const provider = detectProvider(slot.apiKey, slot.providerName, slot.endpoint);
       if (!provider) continue;
 
-      // Dynamic model - no hardcoding!
       let model = slot.detectedModel;
       if (!model) {
         model = await fetchBestModel(provider, slot.apiKey);
         if (model) {
-          const slots = JSON.parse(localStorage.getItem('byok_keys') || '[]');
-          const idx = slots.findIndex(s => s.id === slot.id);
-          if (idx >= 0) {
-            slots[idx].detectedModel = model;
-            localStorage.setItem('byok_keys', JSON.stringify(slots));
-          }
+          const all = getSlots();
+          const idx = all.findIndex(s => s.id === slot.id);
+          if (idx >= 0) { all[idx].detectedModel = model; saveSlots(all); }
         }
       }
 
       const text = await callProvider(provider, slot.apiKey, model, messages);
-      const latency = Date.now() - start;
-      trackCall(provider.id, 0, latency, true);
-
+      trackCall(provider.id, 0, Date.now() - start, true);
       if (text) return { success: true, text, source: provider.name, model };
     } catch (e) {
       trackCall(slot.providerName || 'unknown', 0, 0, false);
-      console.log('Slot failed:', e.message);
       continue;
     }
   }
@@ -79,7 +62,6 @@ const getTodayUsage = () => {
   const key = `usage_engine_${new Date().toDateString()}`;
   return JSON.parse(localStorage.getItem(key) || '{}').calls || 0;
 };
-
 const incrementUsage = () => {
   const key = `usage_engine_${new Date().toDateString()}`;
   const d = JSON.parse(localStorage.getItem(key) || '{}');
