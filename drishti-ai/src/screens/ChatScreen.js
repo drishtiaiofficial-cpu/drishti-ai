@@ -7,9 +7,10 @@ import {
 import ChatEye from '../components/ChatEye';
 import CopyBox from '../components/CopyBox';
 import { sendMessage } from '../services/apiService';
-import { saveMessage, getFullHistory, getContext } from '../services/memoryService';
-
-const SESSION_ID = 'default';
+import {
+  saveMessage, getFullHistory, getContext,
+  getCurrentSessionId, createNewSession,
+} from '../services/memoryService';
 
 const pickFile = (accept) => new Promise((resolve) => {
   const el = document.createElement('input');
@@ -42,9 +43,11 @@ export default function ChatScreen({ navigate }) {
   const [micState, setMicState] = useState('idle');
   const scrollRef = useRef(null);
   const recognitionRef = useRef(null);
+  const sessionIdRef = useRef(getCurrentSessionId());
 
-  useEffect(() => {
-    const saved = getFullHistory(SESSION_ID);
+  const loadMessages = () => {
+    sessionIdRef.current = getCurrentSessionId();
+    const saved = getFullHistory(sessionIdRef.current);
     if (saved.length > 0) {
       setMessages(saved.map((m, i) => ({
         id: m.timestamp || i,
@@ -59,7 +62,14 @@ export default function ChatScreen({ navigate }) {
         sender: 'ai', copyContent: null,
       }]);
     }
-  }, []);
+  };
+
+  useEffect(() => { loadMessages(); }, []);
+
+  const handleNewChat = () => {
+    createNewSession();
+    loadMessages();
+  };
 
   const sendChatMessage = async (text, fileData = null) => {
     if (!text.trim() && !fileData) return;
@@ -82,11 +92,12 @@ export default function ChatScreen({ navigate }) {
     setThinking(true);
 
     try {
-      const history = getContext(SESSION_ID);
-      saveMessage('user', messageForAI, SESSION_ID);
+      const sid = sessionIdRef.current;
+      const history = getContext(sid);
+      saveMessage('user', messageForAI, sid);
       const result = await sendMessage(messageForAI, history);
       const responseText = result.text || 'कुछ गड़बड़ हुई। दोबारा try करें! 🔄';
-      saveMessage('assistant', responseText, SESSION_ID);
+      saveMessage('assistant', responseText, sid);
 
       setMessages(prev => [...prev, { id: Date.now() + 1, text: responseText, sender: 'ai', copyContent: null }]);
     } catch (e) {
@@ -163,11 +174,13 @@ export default function ChatScreen({ navigate }) {
           <Text style={styles.backBtn}>← वापस</Text>
         </TouchableOpacity>
         <Text style={styles.title}>DRISHTI</Text>
-        <View style={styles.statusRow}>
-          <View style={[styles.statusDot, micState === 'listening' && styles.dotListening, thinking && styles.dotThinking]} />
-          <Text style={[styles.statusText, micState === 'listening' && { color: '#00d4ff' }, thinking && { color: '#f59e0b' }]}>
-            {micState === 'listening' ? '🎙️ सुन रही हूँ' : thinking ? 'सोच रही हूँ...' : 'Online'}
-          </Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={handleNewChat} style={styles.iconBtn}>
+            <Text style={styles.iconBtnText}>＋</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigate('history')} style={styles.iconBtn}>
+            <Text style={styles.iconBtnText}>🕐</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -249,11 +262,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 50, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#0d1f3c' },
   backBtn: { color: '#00d4ff', fontSize: 15 },
   title: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 3 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' },
-  dotListening: { backgroundColor: '#00d4ff' },
-  dotThinking: { backgroundColor: '#f59e0b' },
-  statusText: { color: '#10b981', fontSize: 12 },
+  headerRight: { flexDirection: 'row', gap: 8 },
+  iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#0d1f3c', borderWidth: 1, borderColor: '#1a3a6a', justifyContent: 'center', alignItems: 'center' },
+  iconBtnText: { fontSize: 16, color: '#00d4ff' },
   messages: { flex: 1, paddingHorizontal: 15 },
   bubble: { marginVertical: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, maxWidth: '85%' },
   aiBubble: { alignSelf: 'flex-start', backgroundColor: '#0d1f3c', borderWidth: 1, borderColor: '#1a3a6a', borderBottomLeftRadius: 4 },
