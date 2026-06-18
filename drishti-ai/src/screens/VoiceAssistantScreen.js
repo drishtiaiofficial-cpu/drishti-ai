@@ -3,12 +3,9 @@ import {
   View, Text, TouchableOpacity,
   StyleSheet, Animated, Dimensions, ScrollView,
 } from 'react-native';
-import {
-  sendMessage,
-  speakText,
-  stopVoice,
-  getSelectedVoice,
-} from '../services/apiService';
+import { speak, stop as stopSpeaking, VOICE_PROFILES } from '../services/voice/synthesisService';
+import { startRecognition } from '../services/voice/recognitionService';
+import { sendMessage } from '../services/apiService';
 
 const { width } = Dimensions.get('window');
 
@@ -18,12 +15,8 @@ function ThinkingDot({ delay, color }) {
     Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(dotAnim, {
-          toValue: 1, duration: 400, useNativeDriver: true,
-        }),
-        Animated.timing(dotAnim, {
-          toValue: 0.3, duration: 400, useNativeDriver: true,
-        }),
+        Animated.timing(dotAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(dotAnim, { toValue: 0.3, duration: 400, useNativeDriver: true }),
       ])
     ).start();
   }, []);
@@ -43,7 +36,6 @@ export default function VoiceAssistantScreen({ navigate }) {
   const [isMuted, setIsMuted] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
-  const [currentVoice, setCurrentVoice] = useState(getSelectedVoice());
 
   const glowAnim = useRef(new Animated.Value(1)).current;
   const wave1 = useRef(new Animated.Value(0.3)).current;
@@ -53,24 +45,21 @@ export default function VoiceAssistantScreen({ navigate }) {
   const wave5 = useRef(new Animated.Value(0.6)).current;
   const wave6 = useRef(new Animated.Value(0.3)).current;
   const wave7 = useRef(new Animated.Value(0.8)).current;
-  const breatheAnim = useRef(new Animated.Value(1)).current;
-  const blinkAnim = useRef(new Animated.Value(1)).current;
-  const bowTieGlow = useRef(new Animated.Value(0.6)).current;
-  const burstAnim = useRef(new Animated.Value(0)).current;
 
-  const recognitionRef = useRef(null);
-  const chatHistoryRef = useRef([]);
+  const breatheAnim = useRef(new Animated.Value(1)).current;
+  const blinkAnim   = useRef(new Animated.Value(1)).current;
+  const bowTieGlow  = useRef(new Animated.Value(0.6)).current;
+  const burstAnim   = useRef(new Animated.Value(0)).current;
+
+  const recognitionRef  = useRef(null);
+  const chatHistoryRef  = useRef([]);
   const waveAnims = [wave1, wave2, wave3, wave4, wave5, wave6, wave7];
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(breatheAnim, {
-          toValue: 1.04, duration: 2800, useNativeDriver: true,
-        }),
-        Animated.timing(breatheAnim, {
-          toValue: 1, duration: 2800, useNativeDriver: true,
-        }),
+        Animated.timing(breatheAnim, { toValue: 1.04, duration: 2800, useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 1,    duration: 2800, useNativeDriver: true }),
       ])
     ).start();
   }, []);
@@ -79,12 +68,8 @@ export default function VoiceAssistantScreen({ navigate }) {
     let timeout;
     const doBlink = () => {
       Animated.sequence([
-        Animated.timing(blinkAnim, {
-          toValue: 0.05, duration: 70, useNativeDriver: true,
-        }),
-        Animated.timing(blinkAnim, {
-          toValue: 1, duration: 70, useNativeDriver: true,
-        }),
+        Animated.timing(blinkAnim, { toValue: 0.05, duration: 70, useNativeDriver: true }),
+        Animated.timing(blinkAnim, { toValue: 1,    duration: 70, useNativeDriver: true }),
       ]).start(() => {
         const next = mode === 'listening'
           ? 1000 + Math.random() * 700
@@ -99,12 +84,8 @@ export default function VoiceAssistantScreen({ navigate }) {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(bowTieGlow, {
-          toValue: 1, duration: 1600, useNativeDriver: true,
-        }),
-        Animated.timing(bowTieGlow, {
-          toValue: 0.4, duration: 1600, useNativeDriver: true,
-        }),
+        Animated.timing(bowTieGlow, { toValue: 1,   duration: 1600, useNativeDriver: true }),
+        Animated.timing(bowTieGlow, { toValue: 0.4, duration: 1600, useNativeDriver: true }),
       ])
     ).start();
   }, []);
@@ -116,16 +97,14 @@ export default function VoiceAssistantScreen({ navigate }) {
     }
     if (mode === 'listening') {
       burstAnim.setValue(0);
-      Animated.timing(burstAnim, {
-        toValue: 1, duration: 900, useNativeDriver: true,
-      }).start();
+      Animated.timing(burstAnim, { toValue: 1, duration: 900, useNativeDriver: true }).start();
     }
   }, [mode]);
 
   useEffect(() => {
     return () => {
       recognitionRef.current?.abort();
-      stopVoice();
+      stopSpeaking();
     };
   }, []);
 
@@ -134,12 +113,8 @@ export default function VoiceAssistantScreen({ navigate }) {
       Animated.loop(
         Animated.sequence([
           Animated.delay(i * 80),
-          Animated.timing(wave, {
-            toValue: 1, duration: 300 + i * 50, useNativeDriver: true,
-          }),
-          Animated.timing(wave, {
-            toValue: 0.2, duration: 300 + i * 50, useNativeDriver: true,
-          }),
+          Animated.timing(wave, { toValue: 1,   duration: 300 + i * 50, useNativeDriver: true }),
+          Animated.timing(wave, { toValue: 0.2, duration: 300 + i * 50, useNativeDriver: true }),
         ])
       ).start();
     });
@@ -148,32 +123,28 @@ export default function VoiceAssistantScreen({ navigate }) {
   const animateGlow = () => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1.3, duration: 800, useNativeDriver: true,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 1, duration: 800, useNativeDriver: true,
-        }),
+        Animated.timing(glowAnim, { toValue: 1.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 1,   duration: 800, useNativeDriver: true }),
       ])
     ).start();
   };
 
   const getModeColor = () => {
     switch (mode) {
-      case 'sleeping': return '#1a3a6a';
+      case 'sleeping':  return '#1a3a6a';
       case 'listening': return '#00d4ff';
-      case 'thinking': return '#f59e0b';
-      case 'speaking': return '#10b981';
-      default: return '#00d4ff';
+      case 'thinking':  return '#f59e0b';
+      case 'speaking':  return '#10b981';
+      default:          return '#00d4ff';
     }
   };
 
   const getModeText = () => {
     switch (mode) {
-      case 'sleeping': return 'Mic दबाओ और बोलो';
+      case 'sleeping':  return 'Mic दबाओ और बोलो';
       case 'listening': return 'सुन रही हूँ...';
-      case 'thinking': return 'सोच रही हूँ...';
-      case 'speaking': return 'बोल रही हूँ...';
+      case 'thinking':  return 'सोच रही हूँ...';
+      case 'speaking':  return 'बोल रही हूँ...';
     }
   };
 
@@ -185,57 +156,37 @@ export default function VoiceAssistantScreen({ navigate }) {
       return;
     }
     if (mode === 'speaking') {
-      stopVoice();
+      stopSpeaking();
       setMode('sleeping');
       return;
     }
 
-    if (!('webkitSpeechRecognition' in window) &&
-        !('SpeechRecognition' in window)) {
-      processVoiceInput('नमस्ते दृष्टि');
-      return;
-    }
-
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SR();
+    const recognition = startRecognition({
+      lang: 'hi-IN',
+      continuous: false,
+      onStart: () => {
+        setMode('listening');
+        setTranscript('');
+        setResponse('');
+      },
+      onResult: (final, interim) => {
+        setTranscript(final + interim);
+      },
+      onEnd: (finalText) => {
+        recognitionRef.current = null;
+        if (finalText) processVoiceInput(finalText);
+        else { setMode('sleeping'); setTranscript(''); }
+      },
+      onError: () => {
+        recognitionRef.current = null;
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          processVoiceInput('नमस्ते');
+        } else {
+          setMode('sleeping');
+        }
+      },
+    });
     recognitionRef.current = recognition;
-    recognition.lang = 'hi-IN';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-
-    let finalText = '';
-
-    recognition.onstart = () => {
-      setMode('listening');
-      setTranscript('');
-      setResponse('');
-      finalText = '';
-    };
-
-    recognition.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal)
-          finalText += event.results[i][0].transcript;
-        else interim += event.results[i][0].transcript;
-      }
-      setTranscript(finalText + interim);
-    };
-
-    recognition.onspeechend = () => recognition.stop();
-
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      if (finalText.trim()) processVoiceInput(finalText.trim());
-      else { setMode('sleeping'); setTranscript(''); }
-    };
-
-    recognition.onerror = () => {
-      recognitionRef.current = null;
-      setMode('sleeping');
-    };
-
-    recognition.start();
   };
 
   const processVoiceInput = async (text) => {
@@ -245,97 +196,72 @@ export default function VoiceAssistantScreen({ navigate }) {
 
     try {
       const result = await sendMessage(text, chatHistoryRef.current);
+      const aiResponse = result.text || 'कुछ गड़बड़ हुई। दोबारा try करें।';
 
       chatHistoryRef.current = [
         ...chatHistoryRef.current,
         { role: 'user', content: text },
-        { role: 'assistant', content: result.text },
+        { role: 'assistant', content: aiResponse },
       ];
 
-      setResponse(result.text);
-      setConversation(prev => [
-        ...prev, { role: 'drishti', text: result.text },
-      ]);
+      setResponse(aiResponse);
+      setConversation(prev => [...prev, { role: 'drishti', text: aiResponse }]);
       setMode('speaking');
 
       if (!isMuted) {
-        const voice = getSelectedVoice();
-        setCurrentVoice(voice);
-        speakText(result.text, voice);
-
+        const voiceType = localStorage.getItem('selectedVoice') || 'didi';
+        speak(aiResponse, voiceType, () => setMode('sleeping'));
         setTimeout(() => {
-          if (!window.speechSynthesis?.speaking) setMode('sleeping');
-        }, result.text.length * 80 + 1000);
+          if (!('speechSynthesis' in window) || !window.speechSynthesis.speaking) {
+            setMode('sleeping');
+          }
+        }, aiResponse.length * 80);
       } else {
         setTimeout(() => setMode('sleeping'), 3000);
       }
-
     } catch (e) {
       setMode('sleeping');
-      setResponse('कुछ गड़बड़ हई। दोबारा try करो।');
+      setResponse('कुछ गड़बड़ हुई। दोबारा try करें।');
     }
   };
 
-  const modeColor = getModeColor();
-  const burstScale = burstAnim.interpolate({
-    inputRange: [0, 1], outputRange: [1, 1.65],
-  });
-  const burstOpacity = burstAnim.interpolate({
-    inputRange: [0, 0.4, 1], outputRange: [0.8, 0.3, 0],
-  });
+  const modeColor    = getModeColor();
+  const burstScale   = burstAnim.interpolate({ inputRange: [0,1], outputRange: [1, 1.65] });
+  const burstOpacity = burstAnim.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.8, 0.3, 0] });
 
   return (
     <View style={styles.container}>
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => {
           recognitionRef.current?.abort();
-          stopVoice();
+          stopSpeaking();
           navigate('dashboard');
         }}>
           <Text style={styles.backBtn}>← वापस</Text>
         </TouchableOpacity>
 
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>दृष्टि</Text>
-          <Text style={styles.voiceBadge}>
-            {currentVoice === 'dadi' ? '👵 दादी'
-              : currentVoice === 'maa' ? '👩 मां'
-              : currentVoice === 'didi' ? '👧 दीदी'
-              : currentVoice === 'bhai' ? '👦 भाई'
-              : currentVoice === 'teacher' ? '👩‍🏫 Teacher'
-              : '👴 नाना'}
-          </Text>
-        </View>
+        <Text style={styles.headerTitle}>दृष्टि</Text>
 
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={[
               styles.msgToggleBtn,
-              showMessages && {
-                borderColor: modeColor,
-                backgroundColor: modeColor + '22',
-              },
+              showMessages && { borderColor: modeColor, backgroundColor: modeColor + '22' },
             ]}
             onPress={() => setShowMessages(!showMessages)}
           >
-            <Text style={[
-              styles.msgToggleIcon,
-              showMessages && { color: modeColor },
-            ]}>💬</Text>
+            <Text style={[styles.msgToggleIcon, showMessages && { color: modeColor }]}>💬</Text>
           </TouchableOpacity>
 
           <View style={[styles.modeBadge, { borderColor: modeColor }]}>
-            <Text style={[styles.modeLabel, { color: modeColor }]}>
-              {mode}
-            </Text>
+            <Text style={[styles.modeLabel, { color: modeColor }]}>{mode}</Text>
           </View>
         </View>
       </View>
 
-      {/* Character */}
       <View style={styles.characterArea}>
+
         <View style={styles.avatarContainer}>
 
           {mode === 'listening' && (
@@ -355,27 +281,21 @@ export default function VoiceAssistantScreen({ navigate }) {
           <Animated.View style={[styles.characterInner, {
             transform: [{ scale: breatheAnim }],
           }]}>
+
             <View style={[styles.sphere, { shadowColor: modeColor }]}>
               <View style={styles.sphereHighlight} />
               <View style={styles.eyesContainer}>
-                <Animated.View style={[
-                  styles.eye,
-                  { transform: [{ scaleY: blinkAnim }] },
-                ]} />
-                <Animated.View style={[
-                  styles.eye,
-                  { transform: [{ scaleY: blinkAnim }] },
-                ]} />
+                <Animated.View style={[styles.eye, { transform: [{ scaleY: blinkAnim }] }]} />
+                <Animated.View style={[styles.eye, { transform: [{ scaleY: blinkAnim }] }]} />
               </View>
             </View>
 
-            <Animated.View style={[
-              styles.bowTieRow, { opacity: bowTieGlow },
-            ]}>
-              <View style={styles.bowLeft} />
-              <View style={styles.bowKnot} />
+            <Animated.View style={[styles.bowTieRow, { opacity: bowTieGlow }]}>
+              <View style={styles.bowLeft}  />
+              <View style={styles.bowKnot}  />
               <View style={styles.bowRight} />
             </Animated.View>
+
           </Animated.View>
         </View>
 
@@ -414,57 +334,47 @@ export default function VoiceAssistantScreen({ navigate }) {
             )}
             {response !== '' && mode === 'speaking' && (
               <View style={styles.responseBox}>
-                <Text style={styles.responseLabel}>🔮 दष्टि:</Text>
+                <Text style={styles.responseLabel}>🔮 दृष्टि:</Text>
                 <Text style={styles.responseText}>{response}</Text>
               </View>
             )}
           </View>
         )}
+
       </View>
 
       {showMessages && conversation.length > 0 && (
-        <ScrollView
-          style={styles.history}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.history} showsVerticalScrollIndicator={false}>
           {conversation.slice(-6).map((item, i) => (
             <View key={i} style={[
               styles.historyItem,
               item.role === 'user' ? styles.userItem : styles.drishtiItem,
             ]}>
-              <Text style={styles.historyRole}>
-                {item.role === 'user' ? '👤' : '🔮'}
-              </Text>
+              <Text style={styles.historyRole}>{item.role === 'user' ? '👤' : '🔮'}</Text>
               <Text style={styles.historyText}>{item.text}</Text>
             </View>
           ))}
         </ScrollView>
       )}
 
-      {/* Bottom Controls */}
       <View style={styles.bottomControls}>
+
         <TouchableOpacity
           style={[styles.sideBtn, isMuted && styles.sideBtnMuted]}
           onPress={() => {
             setIsMuted(!isMuted);
-            if (!isMuted) stopVoice();
+            if (!isMuted) stopSpeaking();
           }}
         >
           <Text style={styles.sideBtnIcon}>{isMuted ? '🔇' : '🔊'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.micBtn, {
-            borderColor: modeColor,
-            backgroundColor: modeColor + '22',
-          }]}
+          style={[styles.micBtn, { borderColor: modeColor, backgroundColor: modeColor + '22' }]}
           onPress={handleMicPress}
         >
           <Text style={styles.micIcon}>
-            {mode === 'sleeping' ? '🎙️'
-              : mode === 'listening' ? '⏹'
-              : mode === 'speaking' ? '🔇'
-              : '⏳'}
+            {mode === 'sleeping' ? '🎙️' : mode === 'listening' ? '⏹' : mode === 'speaking' ? '🔇' : '⏳'}
           </Text>
         </TouchableOpacity>
 
@@ -472,7 +382,7 @@ export default function VoiceAssistantScreen({ navigate }) {
           style={styles.sideBtn}
           onPress={() => {
             recognitionRef.current?.abort();
-            stopVoice();
+            stopSpeaking();
             setMode('sleeping');
             setTranscript('');
             setResponse('');
@@ -480,8 +390,8 @@ export default function VoiceAssistantScreen({ navigate }) {
         >
           <Text style={styles.sideBtnIcon}>✕</Text>
         </TouchableOpacity>
-      </View>
 
+      </View>
     </View>
   );
 }
@@ -489,25 +399,16 @@ export default function VoiceAssistantScreen({ navigate }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050918', paddingTop: 50 },
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingBottom: 15,
     borderBottomWidth: 1, borderBottomColor: '#0d1f3c',
   },
   backBtn: { color: '#00d4ff', fontSize: 15, width: 60 },
-  headerCenter: { alignItems: 'center' },
-  headerTitle: {
-    color: '#fff', fontSize: 20,
-    fontWeight: '900', letterSpacing: 2,
-  },
-  voiceBadge: {
-    color: '#4a7aaa', fontSize: 11, marginTop: 2,
-  },
+  headerTitle: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: 2 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   msgToggleBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#0d1f3c', borderWidth: 1,
-    borderColor: '#1a3a6a',
+    backgroundColor: '#0d1f3c', borderWidth: 1, borderColor: '#1a3a6a',
     justifyContent: 'center', alignItems: 'center',
   },
   msgToggleIcon: { fontSize: 16 },
@@ -518,20 +419,20 @@ const styles = StyleSheet.create({
   },
   modeLabel: { fontSize: 11, fontWeight: 'bold' },
   characterArea: {
-    flex: 1, alignItems: 'center',
-    justifyContent: 'center', paddingHorizontal: 20,
+    flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20,
   },
   avatarContainer: {
     width: 220, height: 220,
     alignItems: 'center', justifyContent: 'center',
   },
   burstRing: {
-    position: 'absolute', width: 220, height: 220,
-    borderRadius: 110, borderWidth: 1.5,
+    position: 'absolute',
+    width: 220, height: 220, borderRadius: 110, borderWidth: 1.5,
   },
   outerRing: {
-    position: 'absolute', width: 200, height: 200,
-    borderRadius: 100, borderWidth: 6,
+    position: 'absolute',
+    width: 200, height: 200, borderRadius: 100,
+    borderWidth: 6,
     shadowOpacity: 1, shadowRadius: 25,
     shadowOffset: { width: 0, height: 0 }, elevation: 20,
   },
@@ -541,8 +442,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddeeff',
     justifyContent: 'center', alignItems: 'center',
     shadowOpacity: 0.9, shadowRadius: 30,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 20, overflow: 'hidden',
+    shadowOffset: { width: 0, height: 0 }, elevation: 20,
+    overflow: 'hidden',
   },
   sphereHighlight: {
     position: 'absolute', top: 16, left: 28,
@@ -554,30 +455,25 @@ const styles = StyleSheet.create({
     width: 20, height: 30, borderRadius: 10,
     backgroundColor: '#0b1930',
     shadowColor: '#00d4ff', shadowOpacity: 0.5,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 6,
   },
-  bowTieRow: {
-    flexDirection: 'row', alignItems: 'center', marginTop: 10,
-  },
+  bowTieRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   bowLeft: {
-    width: 28, height: 17,
-    borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
+    width: 28, height: 17, borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
     backgroundColor: '#00e5cc',
-    shadowColor: '#00e5cc', shadowOpacity: 0.9,
-    shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
+    shadowColor: '#00e5cc', shadowOpacity: 0.9, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 }, elevation: 10,
   },
   bowKnot: {
-    width: 10, height: 10, borderRadius: 5,
-    backgroundColor: '#00e5cc',
-    shadowColor: '#00e5cc', shadowOpacity: 1,
-    shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
+    width: 10, height: 10, borderRadius: 5, backgroundColor: '#00e5cc',
+    shadowColor: '#00e5cc', shadowOpacity: 1, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 }, elevation: 10,
   },
   bowRight: {
-    width: 28, height: 17,
-    borderTopRightRadius: 14, borderBottomRightRadius: 14,
+    width: 28, height: 17, borderTopRightRadius: 14, borderBottomRightRadius: 14,
     backgroundColor: '#7b5fff',
-    shadowColor: '#7b5fff', shadowOpacity: 0.9,
-    shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
+    shadowColor: '#7b5fff', shadowOpacity: 0.9, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 }, elevation: 10,
   },
   wavesContainer: {
     flexDirection: 'row', alignItems: 'center',
@@ -588,39 +484,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     height: 50, marginTop: 14, marginBottom: 6,
   },
-  modeText: {
-    fontSize: 16, fontWeight: '600',
-    marginBottom: 20, textAlign: 'center',
-  },
+  modeText: { fontSize: 16, fontWeight: '600', marginBottom: 20, textAlign: 'center' },
   transcriptBox: {
-    backgroundColor: '#0d1f3c', borderRadius: 12,
-    padding: 12, marginBottom: 10,
-    borderWidth: 1, borderColor: '#1a3a6a', width: '100%',
+    backgroundColor: '#0d1f3c', borderRadius: 12, padding: 12,
+    marginBottom: 10, borderWidth: 1, borderColor: '#1a3a6a', width: '100%',
   },
   transcriptLabel: { color: '#4a7aaa', fontSize: 11, marginBottom: 4 },
-  transcriptText: { color: '#fff', fontSize: 14 },
+  transcriptText:  { color: '#fff', fontSize: 14 },
   responseBox: {
     backgroundColor: '#071428', borderRadius: 12, padding: 12,
     borderWidth: 1, borderColor: '#10b981', width: '100%',
   },
   responseLabel: { color: '#10b981', fontSize: 11, marginBottom: 4 },
-  responseText: { color: '#fff', fontSize: 14, lineHeight: 20 },
-  history: {
-    maxHeight: 150, paddingHorizontal: 20, marginBottom: 10,
-  },
-  historyItem: {
-    flexDirection: 'row', gap: 8,
-    marginBottom: 8, padding: 10, borderRadius: 10,
-  },
-  userItem: { backgroundColor: '#0d1f3c', alignSelf: 'flex-end' },
+  responseText:  { color: '#fff', fontSize: 14, lineHeight: 20 },
+  history: { maxHeight: 150, paddingHorizontal: 20, marginBottom: 10 },
+  historyItem: { flexDirection: 'row', gap: 8, marginBottom: 8, padding: 10, borderRadius: 10 },
+  userItem:    { backgroundColor: '#0d1f3c', alignSelf: 'flex-end' },
   drishtiItem: { backgroundColor: '#071428', alignSelf: 'flex-start' },
   historyRole: { fontSize: 14 },
-  historyText: {
-    color: '#fff', fontSize: 13, flex: 1, lineHeight: 18,
-  },
+  historyText: { color: '#fff', fontSize: 13, flex: 1, lineHeight: 18 },
   bottomControls: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 30, paddingHorizontal: 40, gap: 30,
     borderTopWidth: 1, borderTopColor: '#0d1f3c',
   },
@@ -634,8 +518,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d1f3c', justifyContent: 'center',
     alignItems: 'center', borderWidth: 1, borderColor: '#1a3a6a',
   },
-  sideBtnMuted: {
-    borderColor: '#ff4444', backgroundColor: '#1a0a0a',
-  },
+  sideBtnMuted: { borderColor: '#ff4444', backgroundColor: '#1a0a0a' },
   sideBtnIcon: { fontSize: 20 },
 });
