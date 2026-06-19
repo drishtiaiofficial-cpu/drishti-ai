@@ -7,137 +7,165 @@ import {
 const CONTENT = {
   terms: {
     title: '📋 Terms of Service',
+    lastUpdated: 'Last updated: June 2026',
     sections: [
       {
-        heading: '1. सेवा की शर्तें',
-        body: 'DRISHTI AI Assistant ("सेवा") का उपयोग करके आप इन शर्तों से सहमत होते हैं। यह सेवा 13 वर्ष से अधिक आयु के उपयोगकर्ताओं के लिए है।',
+        heading: '1. Acceptance of Terms',
+        body: 'By downloading, installing, or using the DRISHTI AI application ("App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the App.\n\nThese Terms constitute a legally binding agreement between you ("User") and DRISHTI AI ("we," "us," or "our"). We reserve the right to update these Terms at any time. Continued use of the App after changes constitutes acceptance of the new Terms.',
       },
       {
-        heading: '2. उपयोग की अनुमति',
-        body: 'आप DRISHTI का उपयोग व्यक्तिगत, गैर-व्यावसायिक उद्देश्यों के लिए कर सकते हैं। किसी भी अवैध गतिविधि के लिए उपयोग प्रतिबंधित है।',
+        heading: '2. Description of Service',
+        body: 'DRISHTI AI is an artificial intelligence-powered assistant designed primarily for Hindi-speaking users in India. The App provides:\n\n• AI-powered chat assistance in Hindi, Hinglish, and English\n• Voice interaction capabilities\n• Screen guidance and Live Guardian features\n• Integration with third-party AI providers via BYOK (Bring Your Own Key)\n• File analysis including images, PDFs, and documents\n\nThe App is intended to assist users with everyday digital tasks and does not replace professional advice in medical, legal, financial, or other specialized domains.',
       },
       {
-        heading: '3. BYOK (Bring Your Own Key)',
-        body: 'आप अपनी API keys स्वयं जोड़ सकते हैं। आपकी API keys केवल आपके device पर store होती हैं। हम आपकी keys नहीं देखते या store नहीं करते।',
+        heading: '3. User Accounts & Eligibility',
+        body: 'You must be at least 13 years of age to use DRISHTI AI. By using the App, you represent that:\n\n• You are at least 13 years old\n• You have the legal capacity to enter into these Terms\n• All information you provide is accurate and complete\n• You will maintain the confidentiality of your account credentials\n\nYou are responsible for all activities that occur under your account. Notify us immediately of any unauthorized use.',
       },
       {
-        heading: '4. सीमाएं',
-        body: 'Free tier में प्रतिदिन 20 messages की सीमा है। यह सीमा हमारे engine के उपयोग पर लागू होती है। BYOK से unlimited उपयोग संभव है।',
+        heading: '4. BYOK (Bring Your Own Key) Policy',
+        body: 'DRISHTI AI allows users to connect their own API keys from third-party providers (Google, Anthropic, OpenAI, Groq, etc.).\n\n• Your API keys are stored locally on your device and are never transmitted to DRISHTI servers\n• You are solely responsible for all charges incurred on your third-party API accounts\n• DRISHTI AI is not responsible for service interruptions, rate limits, or policy changes by third-party providers\n• You must comply with each provider\'s own terms of service when using their APIs through our App\n• We recommend never sharing your API keys with anyone',
       },
       {
-        heading: '5. सेवा में बदलाव',
-        body: 'हम किसी भी समय सेवा में बदलाव कर सकते हैं। महत्वपूर्ण बदलावों की सूचना app update के माध्यम से दी जाएगी।',
+        heading: '5. Free Engine Usage',
+        body: 'DRISHTI AI provides access to its internal AI engine at no cost, subject to the following limitations:\n\n• Free tier: 20 messages per day via the DRISHTI Engine\n• The free limit resets at midnight (IST) each day\n• We reserve the right to modify, suspend, or discontinue the free tier at any time\n• Premium/Pro plans, when available, will be governed by separate subscription terms\n• Abuse of the free tier (automated requests, scraping) may result in account suspension',
       },
       {
-        heading: '6. संपर्क',
-        body: 'किसी भी प्रश्न के लिए: support@drishti.ai\nवेबसाइट: www.drishti.ai',
+        heading: '6. Acceptable Use Policy',
+        body: 'You agree NOT to use DRISHTI AI for:\n\n• Any illegal activities under Indian law or international law\n• Generating harmful, abusive, threatening, or harassing content\n• Spreading misinformation or deliberately false information\n• Attempting to circumvent security measures or access restrictions\n• Uploading malware, viruses, or malicious code\n• Violating the intellectual property rights of others\n• Any activity that could harm minors\n• Reverse engineering or attempting to extract our AI models\n\nViolation of this policy may result in immediate termination of your access.',
+      },
+      {
+        heading: '7. AI-Generated Content Disclaimer',
+        body: 'DRISHTI AI uses artificial intelligence to generate responses. Please be aware:\n\n• AI responses may sometimes be inaccurate, incomplete, or outdated\n• Content generated by the AI does not constitute professional advice\n• Do not rely on DRISHTI AI for critical medical, legal, or financial decisions\n• Always verify important information from authoritative sources\n• We are not liable for any decisions made based on AI-generated content\n\nDRISHTI AI is a tool to assist you — your judgment and discretion remain essential.',
+      },
+      {
+        heading: '8. Intellectual Property',
+        body: 'All rights, title, and interest in and to the DRISHTI AI App (excluding user-provided content and third-party APIs) are owned by DRISHTI AI. This includes:\n\n• App design, UI/UX, and visual elements\n• DRISHTI logo, name, and branding\n• Proprietary algorithms and code\n• Documentation and written materials\n\nYou are granted a limited, non-exclusive, non-transferable license to use the App for personal, non-commercial purposes only. You may not copy, modify, distribute, or create derivative works without our written permission.',
+      },
+      {
+        heading: '9. Limitation of Liability',
+        body: 'TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:\n\n• DRISHTI AI is provided "as is" without warranties of any kind\n• We do not guarantee uninterrupted, error-free service\n• We are not liable for any indirect, incidental, special, or consequential damages\n• Our total liability to you shall not exceed the amount paid by you to us in the 12 months preceding the claim\n• We are not responsible for third-party service outages or data breaches at third-party providers',
+      },
+      {
+        heading: '10. Governing Law & Dispute Resolution',
+        body: 'These Terms are governed by the laws of India. Any disputes arising from these Terms or your use of the App shall be:\n\n• First attempted to be resolved through good-faith negotiation\n• Subject to the exclusive jurisdiction of courts in India\n• Governed by the Information Technology Act, 2000 and applicable Indian regulations\n\nFor any legal notices or concerns, contact us at: legal@drishti.ai',
       },
     ],
   },
+
   privacy: {
     title: '🔒 Privacy Policy',
+    lastUpdated: 'Last updated: June 2026',
     sections: [
       {
-        heading: '1. जानकारी जो हम collect करते हैं',
-        body: '• Email address (login के लिए)\n• Chat conversations (session के दौरान)\n• App usage statistics\n• Device information (basic)',
+        heading: '1. Our Privacy Commitment',
+        body: 'At DRISHTI AI, your privacy is fundamental to everything we build. This Privacy Policy explains how we collect, use, store, and protect your information when you use our App.\n\nWe believe in:\n• Minimal data collection — we only collect what is necessary\n• Local-first storage — your conversations stay on your device\n• No selling your data — ever\n• Transparency — we tell you exactly what we do with your data',
       },
       {
-        heading: '2. जानकारी जो हम नहीं collect करते',
-        body: '• आपकी API keys (केवल device पर)\n• Personal financial information\n• Location data\n• Contact list',
+        heading: '2. Information We Collect',
+        body: 'LOCAL STORAGE (on your device only):\n• Chat history and conversation logs\n• BYOK API keys (encrypted, never sent to our servers)\n• App preferences and settings\n• Usage statistics (free message count)\n\nSERVER-SIDE (when using DRISHTI Engine):\n• Your message text (to generate AI responses)\n• Session identifiers (anonymous, no personal identification)\n• Request timestamps and response times\n\nWE DO NOT COLLECT:\n• Your real name or identity\n• Location data\n• Contacts or call logs\n• Photos (unless you explicitly share one in chat)',
       },
       {
-        heading: '3. Data का उपयोग',
-        body: 'आपकी जानकारी का उपयोग:\n• सेवा प्रदान करने के लिए\n• App को बेहतर बनाने के लिए\n• Technical issues fix करने के लिए',
+        heading: '3. How We Use Your Information',
+        body: 'Information collected is used exclusively to:\n\n• Provide AI-powered responses to your queries\n• Maintain your conversation history locally\n• Improve App performance and fix bugs\n• Detect and prevent abuse of the free tier\n• Comply with legal obligations\n\nWe do NOT use your information for:\n• Targeted advertising\n• Selling to third parties\n• Building personal profiles for commercial purposes\n• Training AI models without your explicit consent',
       },
       {
-        heading: '4. Data Security',
-        body: 'हम industry-standard encryption का उपयोग करते हैं। आपकी API keys केवल आपके device पर locally store होती हैं।',
+        heading: '4. Third-Party AI Providers (BYOK)',
+        body: 'When you use the BYOK feature with your own API keys:\n\n• Your messages are sent directly from your device to the respective provider (Google, Anthropic, OpenAI, Groq, etc.)\n• DRISHTI servers do NOT see or store these messages\n• Each provider has their own privacy policy that applies\n• We strongly recommend reviewing the privacy policy of each provider you connect\n\nProviders and their privacy policies:\n• Google Gemini: policies.google.com\n• Anthropic Claude: anthropic.com/privacy\n• OpenAI: openai.com/privacy\n• Groq: groq.com/privacy',
       },
       {
-        heading: '5. Data Deletion',
-        body: 'आप Settings → Data Reset करो से अपना सारा data delete कर सकते हैं। Email: privacy@drishti.ai',
+        heading: '5. Data Storage & Security',
+        body: 'DATA LOCATION:\n• Conversations: Stored locally on your device (localStorage)\n• API Keys: Stored locally, never transmitted to DRISHTI servers\n• Engine interactions: Temporary processing, not permanently stored\n\nSECURITY MEASURES:\n• HTTPS encryption for all network communication\n• No plaintext storage of sensitive credentials\n• Regular security audits of our backend systems\n• Access controls and authentication on our servers\n\nPlease note: No system is 100% secure. We encourage you to use strong device security (screen lock, biometrics) to protect your local data.',
       },
       {
-        heading: '6. Third Party Services',
-        body: 'DRISHTI विभिन्न AI providers (Groq, OpenAI, Google, Anthropic आदि) का उपयोग करता है। उनकी अपनी privacy policies लागू होती हैं।',
+        heading: '6. Children\'s Privacy',
+        body: 'DRISHTI AI is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13.\n\nIf you are a parent or guardian and believe your child has used the App, please contact us at privacy@drishti.ai and we will take appropriate action.\n\nUsers between 13-18 should use the App only with parental guidance and consent.',
+      },
+      {
+        heading: '7. Your Rights',
+        body: 'You have the following rights regarding your data:\n\n• ACCESS: Know what data we hold about you\n• CORRECTION: Request correction of inaccurate data\n• DELETION: Request deletion of your data (Settings → Data Reset)\n• PORTABILITY: Export your conversation history\n• OPT-OUT: Disable the DRISHTI Engine anytime in Settings\n\nTo exercise any of these rights, use the Data Reset option in Settings, or contact us at privacy@drishti.ai\n\nUnder the Digital Personal Data Protection Act (DPDPA) 2023, Indian users have additional rights which we fully respect.',
+      },
+      {
+        heading: '8. Data Retention',
+        body: 'DRISHTI AI retains your data as follows:\n\n• Chat history: Stored locally until you delete it (Settings → Data Reset)\n• Engine usage counters: Reset daily at midnight\n• Account information: Until you delete your account\n• Server logs: Maximum 30 days for security purposes\n\nYou can delete all your local data anytime through Settings → Data Reset करो.',
+      },
+      {
+        heading: '9. Changes to This Policy',
+        body: 'We may update this Privacy Policy from time to time. When we make significant changes:\n\n• We will notify you within the App\n• The "Last Updated" date will be revised\n• For material changes, we will request your renewed consent\n\nWe encourage you to review this policy periodically. Continued use after changes constitutes acceptance.',
+      },
+      {
+        heading: '10. Contact Us',
+        body: 'For any privacy concerns, data requests, or questions about this policy:\n\n📧 Email: privacy@drishti.ai\n📧 Legal: legal@drishti.ai\n📧 Support: support@drishti.ai\n\n🌐 Website: www.drishti.ai\n\nWe aim to respond to all privacy inquiries within 72 hours.',
       },
     ],
   },
+
   about: {
-    title: '🔮 About DRISHTI',
+    title: 'ℹ️ About DRISHTI AI',
+    lastUpdated: 'Version 1.0 • June 2026',
     sections: [
       {
         heading: 'DRISHTI क्या है?',
-        body: 'DRISHTI भारत का AI Assistant है जो Hindi, English और अन्य भाषाओं में help करता है। यह senior citizens, students और everyone के लिए बनाया गया है।',
+        body: 'DRISHTI (Digital Real-time Intelligent Screen & Human Talking Interface) भरत का पहला Hindi-first AI Assistant है।\n\nहमारा mission है: हर भारतीय को — चाहे वो senior citizen हो, student हो, या छटा दुकानदार — technology का साथ देना। Hindi में, उनकी भाषा में।\n\nDRISHTI का मतलब है "दृष्टि" — vision। हम आपको digital दुनिया में नई दष्टि देना चाहते हैं।',
       },
       {
-        heading: 'हमारा Mission',
-        body: 'Technology को सबके लिए accessible बनाना। हर भारतीय को AI की शक्ति देना, चाहे वो किसी भी भाषा में बात करें।',
+        heading: 'Built with ❤️ in India',
+        body: 'DRISHTI को India में build किया गया है — specifically उन लोगों के लिए जिन्हें technology में मदद चहिए।\n\nFounder: Vipul\nAI Partner: Claude (Anthropic)\nBuilt on: React Native / Expo\nBackend: DRISHTI Engine (custom AI)\n\n"Technology सबके लिए होनी चाहिए — सिर्फ English बोलने वालों के लिए नहीं।"',
       },
       {
-        heading: 'BYOK System',
-        body: 'हम मानते हैं कि AI free होनी चाहिए। इसीलिए हमने BYOK (Bring Your Own Key) system बनाया है - अपनी free API key add करो और unlimited use करो।',
-      },
-      {
-        heading: 'Version',
-        body: 'DRISHTI v1.0.0\nBuilt with React Native + Expo\nPowered by DRISHTI Engine v2.0',
-      },
-      {
-        heading: 'Contact',
-        body: '📧 support@drishti.ai\n🌐 www.drishti.ai\n📱 Play Store: DRISHTI AI',
+        heading: 'Open Source Philosophy',
+        body: 'DRISHTI AI open-source values में विश्वास रखता है। हम चाहते हैं कि India में AI development हो, और developers मिलकर इसे बेहतर बनाए।\n\nGitHub: github.com/drishtiaiofficial-cpu/drishti-ai\n\nContributions, bug reports, और suggestions का स्वागत है!',
       },
     ],
   },
 };
 
 export default function LegalScreen({ navigate }) {
-  const [active, setActive] = useState('terms');
-  const content = CONTENT[active];
+  const [activeTab, setActiveTab] = useState('terms');
+  const content = CONTENT[activeTab];
 
   return (
     <View style={styles.container}>
-
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigate('settings')}>
           <Text style={styles.backBtn}>← वापस</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Legal & About</Text>
+        <Text style={styles.headerTitle}>⚖️ Legal</Text>
         <View style={{ width: 60 }} />
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabs}>
         {[
-          { id: 'terms', label: '📋 Terms' },
-          { id: 'privacy', label: '🔒 Privacy' },
-          { id: 'about', label: '🔮 About' },
-        ].map(tab => (
+          { key: 'terms', label: '📋 Terms' },
+          { key: 'privacy', label: '🔒 Privacy' },
+          { key: 'about', label: 'ℹ️ About' },
+        ].map((tab) => (
           <TouchableOpacity
-            key={tab.id}
-            style={[styles.tab, active === tab.id && styles.tabActive]}
-            onPress={() => setActive(tab.id)}
+            key={tab.key}
+            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            onPress={() => setActiveTab(tab.key)}
           >
-            <Text style={[
-              styles.tabText,
-              active === tab.id && styles.tabTextActive,
-            ]}>
+            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          <Text style={styles.contentTitle}>{content.title}</Text>
-          {content.sections.map((section, i) => (
-            <View key={i} style={styles.section}>
-              <Text style={styles.sectionHeading}>{section.heading}</Text>
-              <Text style={styles.sectionBody}>{section.body}</Text>
-            </View>
-          ))}
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+        <Text style={styles.docTitle}>{content.title}</Text>
+        <Text style={styles.lastUpdated}>{content.lastUpdated}</Text>
+
+        {content.sections.map((section, i) => (
+          <View key={i} style={styles.section}>
+            <Text style={styles.sectionHeading}>{section.heading}</Text>
+            <Text style={styles.sectionBody}>{section.body}</Text>
+          </View>
+        ))}
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>DRISHTI AI • Made in India 🇮🇳</Text>
+          <Text style={styles.footerSub}>Questions? support@drishti.ai</Text>
         </View>
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -146,38 +174,44 @@ export default function LegalScreen({ navigate }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050918', paddingTop: 50 },
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingBottom: 15,
     borderBottomWidth: 1, borderBottomColor: '#0d1f3c',
   },
   backBtn: { color: '#00d4ff', fontSize: 15, width: 60 },
-  title: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  headerTitle: { color: '#ffffff', fontSize: 18, fontWeight: '900' },
   tabs: {
-    flexDirection: 'row', backgroundColor: '#0d1f3c',
-    margin: 16, borderRadius: 14, padding: 4,
-    borderWidth: 1, borderColor: '#1a3a6a',
+    flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8,
+    borderBottomWidth: 1, borderBottomColor: '#0d1f3c',
   },
   tab: {
-    flex: 1, paddingVertical: 10,
-    borderRadius: 11, alignItems: 'center',
+    flex: 1, paddingVertical: 8, borderRadius: 10,
+    backgroundColor: '#0d1f3c', alignItems: 'center',
+    borderWidth: 1, borderColor: '#1a3a6a',
   },
-  tabActive: { backgroundColor: '#00d4ff' },
+  tabActive: { backgroundColor: '#00d4ff22', borderColor: '#00d4ff' },
   tabText: { color: '#4a7aaa', fontSize: 12, fontWeight: '600' },
-  tabTextActive: { color: '#000', fontWeight: '900' },
-  content: { paddingHorizontal: 20, paddingTop: 8 },
-  contentTitle: {
-    color: '#fff', fontSize: 20,
-    fontWeight: '900', marginBottom: 20,
+  tabTextActive: { color: '#00d4ff' },
+  scroll: { flex: 1, paddingHorizontal: 20 },
+  docTitle: {
+    color: '#ffffff', fontSize: 22, fontWeight: '900',
+    marginTop: 20, marginBottom: 4,
   },
+  lastUpdated: { color: '#4a7aaa', fontSize: 12, marginBottom: 20 },
   section: {
     backgroundColor: '#0d1f3c', borderRadius: 14,
     padding: 16, marginBottom: 12,
     borderWidth: 1, borderColor: '#1a3a6a',
   },
   sectionHeading: {
-    color: '#00d4ff', fontSize: 14,
-    fontWeight: '800', marginBottom: 8,
+    color: '#00d4ff', fontSize: 14, fontWeight: '800',
+    marginBottom: 10,
   },
-  sectionBody: { color: '#4a7aaa', fontSize: 13, lineHeight: 22 },
+  sectionBody: { color: '#c8d8e8', fontSize: 13, lineHeight: 22 },
+  footer: {
+    alignItems: 'center', paddingVertical: 30,
+    borderTopWidth: 1, borderTopColor: '#0d1f3c', marginTop: 10,
+  },
+  footerText: { color: '#4a7aaa', fontSize: 13, fontWeight: '600' },
+  footerSub: { color: '#2a4a6a', fontSize: 11, marginTop: 4 },
 });
