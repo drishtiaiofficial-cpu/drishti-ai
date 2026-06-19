@@ -9,6 +9,7 @@ export default function DashboardScreen({ navigate }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const [userName, setUserName] = useState('');
+  const [freeLeft, setFreeLeft] = useState(20);
 
   useEffect(() => {
     const name = localStorage.getItem('userName') || 'User';

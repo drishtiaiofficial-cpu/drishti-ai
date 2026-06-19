@@ -7,6 +7,9 @@ export default function SettingsScreen({ navigate }) {
   const [hindiMode, setHindiMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+  const [engineEnabled, setEngineState] = useState(true);
+  useEffect(() => { setEngineState(localStorage.getItem('engine_enabled') !== 'false'); }, []);
+  const toggleEngine = (val) => { setEngineState(val); localStorage.setItem('engine_enabled', val.toString()); };
   const [engineEnabled, setEngineEnabledState] = useState(true);
 
   const voices = [
