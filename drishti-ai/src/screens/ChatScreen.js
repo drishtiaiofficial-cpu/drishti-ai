@@ -92,7 +92,14 @@ export default function ChatScreen({ navigate }) {
     setInput(''); setThinking(true);
     try {
       const reply = await callAPI(text.trim(), historyRef.current);
-      const r = reply || 'कुछ गड़बड़ हुई। दोबारा try करें।';
+      const r = reply || 'कुछ गड़बड़ हुई। दबारा try करें।';
+      const sid = localStorage.getItem('current_session_id') || 'default_' + Date.now();
+      localStorage.setItem('current_session_id', sid);
+      const chatKey = 'chat_' + sid;
+      const existing = JSON.parse(localStorage.getItem(chatKey) || '[]');
+      existing.push({ role: 'user', content: text.trim(), timestamp: Date.now() });
+      existing.push({ role: 'assistant', content: r, timestamp: Date.now() + 1 });
+      localStorage.setItem(chatKey, JSON.stringify(existing));
       historyRef.current = [...historyRef.current,
         { role: 'user', content: text },
         { role: 'assistant', content: r }
