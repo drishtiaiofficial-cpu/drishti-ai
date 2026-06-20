@@ -124,21 +124,50 @@ export default function ChatScreen({ navigate }) {
     const r = new SR(); recognitionRef.current = r;
     r.lang = 'hi-IN'; r.interimResults = true; r.continuous = false;
     let final = '';
-    r.onstart = () => { setMicState('listening'); final = ''; };
+    let autoStopTimer = null;
+    r.onstart = () => {
+      setMicState('listening');
+      final = '';
+      // 10 second max timeout — auto stop
+      autoStopTimer = setTimeout(() => { try { r.stop(); } catch {} }, 10000);
+    };
     r.onresult = (e) => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
       setInput(final + interim);
+      // Final result मिल गया → 800ms बद auto stop (silence detect)
+      if (final.trim()) {
+        clearTimeout(autoStopTimer);
+        autoStopTimer = setTimeout(() => { try { r.stop(); } catch {} }, 800);
+      }
     };
-    r.onspeechend = () => r.stop();
+    r.onspeechend = () => {
+      clearTimeout(autoStopTimer);
+      try { r.stop(); } catch {}
+    };
     r.onend = () => {
-      setMicState('idle'); recognitionRef.current = null;
-      if (final.trim()) { setInput(''); send(final.trim()); } else setInput('');
+      clearTimeout(autoStopTimer);
+      setMicState('idle');
+      recognitionRef.current = null;
+      if (final.trim()) {
+        setInput('');
+        send(final.trim()); // auto send!
+      } else {
+        setInput('');
+      }
     };
-    r.onerror = () => { setMicState('idle'); recognitionRef.current = null; setInput(''); };
+    r.onerror = () => {
+      clearTimeout(autoStopTimer);
+      setMicState('idle');
+      recognitionRef.current = null;
+      setInput('');
+    };
     r.start();
   };
 
