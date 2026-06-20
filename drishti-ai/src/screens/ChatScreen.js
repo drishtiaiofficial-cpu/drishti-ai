@@ -6,6 +6,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { saveMessage, getMessages, getContext, getCurrentSessionId, createSession } from '../services/projectService';
 
+const getSystemPrompt = () => {
+  const lang = localStorage.getItem('app_language') || 'hinglish';
+  if (lang === 'english') return 'You are DRISHTI, an AI assistant. Always reply in English. Be helpful and concise.';
+  if (lang === 'hindi') return 'तुम DRISHTI हो - AI Assistant। हमेशा शुद्ध Hindi में जवाब दो। Short और helpful रहो।';
+  return 'तुम DRISHTI हो - Hindi AI Assistant। Hindi/Hinglish में जवाब दो। Short और helpful रहो।';
+};
+
 const callAPI = async (message, history) => {
   try {
     const byokOn = localStorage.getItem('byok_enabled');
@@ -17,7 +24,7 @@ const callAPI = async (message, history) => {
         try {
           const key = slot.apiKey || '';
           const msgs = [
-            { role: 'system', content: 'तुम DRISHTI हो - Hindi AI Assistant। Hindi/Hinglish में जवाब दो। Short और helpful रहो।' },
+            { role: 'system', content: getSystemPrompt() },
             ...history, { role: 'user', content: message }
           ];
           let url = 'https://api.groq.com/openai/v1/chat/completions';
@@ -118,6 +125,15 @@ export default function ChatScreen({ navigate }) {
         { role: 'assistant', content: r }
       ].slice(-20);
       setMessages(prev => [...prev, { id: Date.now() + 1, text: r, sender: 'ai' }]);
+      try {
+        let sid = localStorage.getItem('current_session_id');
+        if (!sid) { sid = 'session_' + Date.now(); localStorage.setItem('current_session_id', sid); }
+        const key = 'chat_' + sid;
+        const hist = JSON.parse(localStorage.getItem(key) || '[]');
+        hist.push({ role: 'user', content: text.trim(), timestamp: Date.now() - 100 });
+        hist.push({ role: 'assistant', content: r, timestamp: Date.now() });
+        localStorage.setItem(key, JSON.stringify(hist));
+      } catch(e) {}
     } catch {
       setMessages(prev => [...prev, { id: Date.now() + 1, text: 'Error! दोबारा try करें। 🔄', sender: 'ai' }]);
     } finally {
