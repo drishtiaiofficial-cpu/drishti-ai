@@ -7,6 +7,7 @@ export default function SettingsScreen({ navigate }) {
   const [darkMode, setDarkMode] = useState(true);
   const [engineEnabled, setEngineEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState('didi');
+  const [language, setLanguage] = useState(localStorage.getItem('app_language') || 'hindi');
 
   const voices = [
     { id: 'didi', name: 'Didi 👩', desc: 'Friendly, caring' },
@@ -154,3 +155,4 @@ const styles = StyleSheet.create({
   logoutBtn: { margin: 20, backgroundColor: '#1a0a0a', borderRadius: 14, padding: 15, alignItems: 'center', borderWidth: 1, borderColor: '#ff4444', marginBottom: 40 },
   logoutText: { color: '#ff4444', fontSize: 16, fontWeight: 'bold' },
 });
+// Language selection patch - added back
