@@ -4,6 +4,7 @@ import {
   StyleSheet, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { saveMessage, getMessages, getContext, getCurrentSessionId, createSession } from '../services/projectService';
 
 const callAPI = async (message, history) => {
   try {
@@ -74,9 +75,21 @@ const speakText = (text) => {
 };
 
 export default function ChatScreen({ navigate }) {
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'नमस्ते! 🙏 मैं DRISHTI हूँ।\nकुछ भी पूछो — Hindi, Hinglish, या English में!\n\nSettings → My APIs में key add करें।', sender: 'ai' }
-  ]);
+  const getInitialMessages = () => {
+    try {
+      const sid = getCurrentSessionId();
+      const saved = getMessages(sid);
+      if (saved.length > 0) {
+        return saved.map((m, i) => ({
+          id: m.timestamp || i,
+          text: m.content,
+          sender: m.role === 'assistant' ? 'ai' : 'user',
+        }));
+      }
+    } catch {}
+    return [{ id: 1, sender: 'ai', text: 'नमस्ते! 🙏 मैं DRISHTI हूँ।\nकुछ भी पूछो!\n\nSettings → My APIs में key add करें।' }];
+  };
+  const [messages, setMessages] = useState(getInitialMessages);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const [micState, setMicState] = useState('idle');
@@ -183,6 +196,7 @@ export default function ChatScreen({ navigate }) {
   };
 
   const newChat = () => {
+    createSession();
     historyRef.current = [];
     setMessages([{ id: Date.now(), text: 'नई chat शुरू! 🙏 क्या पूछना है?', sender: 'ai' }]);
     setFeedback({}); setInput('');

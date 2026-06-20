@@ -43,7 +43,7 @@ const formatTime = (ts) => {
 export default function HistoryScreen({ navigate }) {
   const [sessions, setSessions] = useState([]);
 
-  useEffect(() => { setSessions(getSessions()); }, []);
+  useEffect(() => { setSessions(getAllSessions()); }, []);
 
   const openSession = (id) => {
     localStorage.setItem('current_session_id', id);
@@ -59,7 +59,7 @@ export default function HistoryScreen({ navigate }) {
   const deleteSession = (key) => {
     if (window.confirm('यह chat delete करें?')) {
       localStorage.removeItem(key);
-      setSessions(getSessions());
+      setSessions(getAllSessions());
     }
   };
 
