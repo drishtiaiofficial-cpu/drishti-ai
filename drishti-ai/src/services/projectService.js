@@ -12,11 +12,11 @@ export const getProjects = () => {
   } catch { return []; }
 };
 
-export const createProject = (name = 'New Project') => {
+export const createProject = (name = 'New Project', description = '') => {
   const projects = getProjects();
   const project = {
     id: 'proj_' + Date.now(),
-    name,
+    name, description,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
