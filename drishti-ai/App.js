@@ -1,3 +1,4 @@
+import ErrorBoundary from './src/components/ErrorBoundary';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import SplashScreen from './src/screens/SplashScreen';
@@ -21,6 +22,7 @@ export default function App() {
   const navigate = (s) => setScreen(s);
 
   return (
+    <ErrorBoundary>
     <View style={styles.container}>
       {screen === 'splash' && <SplashScreen navigate={navigate} />}
       {screen === 'login' && <LoginScreen navigate={navigate} />}
@@ -38,6 +40,7 @@ export default function App() {
       {screen === 'history' && <HistoryScreen navigate={navigate} />}
       {screen === 'projects' && <ProjectsScreen navigate={navigate} />}
     </View>
+    </ErrorBoundary>
   );
 }
 
