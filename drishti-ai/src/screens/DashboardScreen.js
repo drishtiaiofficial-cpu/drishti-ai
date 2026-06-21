@@ -1,228 +1,207 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View, Text, TouchableOpacity,
-  StyleSheet, Animated, ScrollView,
-} from 'react-native';
-import { t } from '../utils/translations';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const getRecentChats = () => {
+  try {
+    const sessions = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith('chat_')) continue;
+      const hist = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!hist.length) continue;
+      const lastUser = [...hist].reverse().find(m => m.role === 'user');
+      sessions.push({
+        id: key.replace('chat_', ''),
+        title: lastUser?.content?.slice(0, 40) || 'Chat',
+        time: hist[hist.length-1]?.timestamp || 0,
+        count: hist.length,
+      });
+    }
+    return sessions.sort((a,b) => b.time - a.time).slice(0, 5);
+  } catch { return []; }
+};
+
+const getProjects = () => {
+  try { return JSON.parse(localStorage.getItem('drishti_projects') || '[]'); }
+  catch { return []; }
+};
 
 export default function DashboardScreen({ navigate }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const [userName, setUserName] = useState('');
-  const [freeLeft, setFreeLeft] = useState(20);
+  const [recentChats, setRecentChats] = useState([]);
+  const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    const name = localStorage.getItem('userName') || 'User';
-    setUserName(name);
+    setUserName(localStorage.getItem('userName') || 'Vipul');
+    setRecentChats(getRecentChats());
+    setProjects(getProjects());
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1, duration: 800, useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0, tension: 50, friction: 8, useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  const menuItems = [
-    {
-      icon: '💬',
-      title: t('menu_chat'),
-      subtitle: t('menu_chat_sub'),
-      color: '#00d4ff',
-      screen: 'chat',
-    },
-    {
-      icon: '👁️',
-      title: t('menu_guardian'),
-      subtitle: t('menu_guardian_sub'),
-      color: '#7c3aed',
-      screen: 'liveGuardian',
-    },
-    {
-      icon: '🎙️',
-      title: t('menu_voice'),
-      subtitle: t('menu_voice_sub'),
-      color: '#10b981',
-      screen: 'voice',
-    },
-    {
-      icon: '📊',
-      title: t('menu_progress'),
-      subtitle: t('menu_progress_sub'),
-      color: '#f59e0b',
-      screen: 'progress',
-    },
-  ];
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return t('greeting_morning');
-    if (hour < 17) return t('greeting_afternoon');
-    if (hour < 21) return t('greeting_evening');
-    return t('greeting_night');
+  const openChat = (id) => {
+    localStorage.setItem('current_session_id', id);
+    navigate('chat');
   };
 
-  const streak = parseInt(localStorage.getItem('streak') || '7');
-  const progress = parseInt(localStorage.getItem('progress') || '65');
+  const newChat = () => {
+    const id = 'session_' + Date.now();
+    localStorage.setItem('current_session_id', id);
+    navigate('chat');
+  };
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'सुप्रभात ☀️';
+    if (h < 17) return 'नमस्ते 👋';
+    if (h < 21) return 'शुभ संध्या 🌅';
+    return 'शुभ रात्रि 🌙';
+  };
+
+  const formatTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts), now = new Date();
+    if (d.toDateString() === now.toDateString()) return 'आज';
+    return d.toLocaleDateString('hi-IN', {day:'numeric', month:'short'});
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
 
         {/* Header */}
-        <Animated.View style={[styles.header, {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }]}>
+        <Animated.View style={[s.header, {opacity: fadeAnim, transform:[{translateY: slideAnim}]}]}>
           <View>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.subGreeting}>
-              {t('dashboard_subtitle')}
-            </Text>
+            <Text style={s.greeting}>{getGreeting()}</Text>
+            <Text style={s.userName}>{userName}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => navigate('settings')}
-            style={styles.profileBtn}
-          >
-            <View style={styles.profileCircle}>
-              <Text style={styles.profileLetter}>
-                {userName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <Text style={styles.profileSub}>⚙️ Settings</Text>
+          <TouchableOpacity onPress={() => navigate('settings')} style={s.settingsBtn}>
+            <Ionicons name="settings-outline" size={22} color="#00d4ff" />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Status Card */}
-        <Animated.View style={[styles.statusCard, {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }]}>
-          <Text style={styles.statusTitle}>
-            🔥 {streak} {t('dashboard_streak')}
-          </Text>
-          <Text style={styles.statusSub}>
-            {t('dashboard_streak_sub')}
-          </Text>
-          <View style={styles.statusBar}>
-            <View style={[styles.statusFill, { width: `${progress}%` }]} />
-          </View>
-          <Text style={styles.statusPercent}>
-            {progress}% {t('dashboard_complete')}
-          </Text>
-        </Animated.View>
-
-        {/* Menu Grid */}
-        <Animated.View style={[styles.menuGrid, {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }]}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.menuItem, { borderColor: item.color + '44' }]}
-              onPress={() => navigate(item.screen)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.menuIcon}>{item.icon}</Text>
-              <Text style={[styles.menuTitle, { color: item.color }]}>
-                {item.title}
-              </Text>
-              <Text style={styles.menuSub}>{item.subtitle}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* New Chat Button - Claude जैसा */}
+        <Animated.View style={{opacity: fadeAnim, transform:[{translateY: slideAnim}]}}>
+          <TouchableOpacity style={s.newChatBtn} onPress={newChat}>
+            <Ionicons name="add-circle-outline" size={22} color="#000" />
+            <Text style={s.newChatTxt}>नई Chat शुरू करो</Text>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Quick Actions */}
-        <Animated.View style={[styles.quickSection, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>
-            {t('dashboard_quick')}
-          </Text>
+        <Animated.View style={[s.quickRow, {opacity: fadeAnim}]}>
           {[
-            { icon: '📱', text: 'WhatsApp guide' },
-            { icon: '💰', text: 'UPI payment guide' },
-            { icon: '📄', text: 'Form fill करो' },
+            { icon: 'mic-outline', label: 'Voice', screen: 'voice', color: '#10b981' },
+            { icon: 'eye-outline', label: 'Guardian', screen: 'liveGuardian', color: '#7c3aed' },
+            { icon: 'folder-outline', label: 'Projects', screen: 'projects', color: '#f59e0b' },
+            { icon: 'stats-chart-outline', label: 'Progress', screen: 'progress', color: '#00d4ff' },
           ].map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.quickItem}
-              onPress={() => navigate('chat')}
-            >
-              <Text style={styles.quickIcon}>{item.icon}</Text>
-              <Text style={styles.quickText}>{item.text}</Text>
-              <Text style={styles.quickArrow}>→</Text>
+            <TouchableOpacity key={i} style={s.quickItem} onPress={() => navigate(item.screen)}>
+              <View style={[s.quickIcon, {backgroundColor: item.color + '22', borderColor: item.color + '44'}]}>
+                <Ionicons name={item.icon} size={22} color={item.color} />
+              </View>
+              <Text style={s.quickLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
         </Animated.View>
 
+        {/* Recent Chats - Claude जैसा */}
+        <Animated.View style={{opacity: fadeAnim, paddingHorizontal: 20}}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>🕐 Recent Chats</Text>
+            <TouchableOpacity onPress={() => navigate('history')}>
+              <Text style={s.seeAll}>सब देखो →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {recentChats.length === 0 ? (
+            <TouchableOpacity style={s.emptyChat} onPress={newChat}>
+              <Ionicons name="chatbubble-outline" size={24} color="#1a3a6a" />
+              <Text style={s.emptyChatTxt}>कोई पुरानी chat नहीं — नई शुरू करो!</Text>
+            </TouchableOpacity>
+          ) : (
+            recentChats.map(chat => (
+              <TouchableOpacity key={chat.id} style={s.chatCard} onPress={() => openChat(chat.id)}>
+                <View style={s.chatIcon}>
+                  <Ionicons name="chatbubble-outline" size={18} color="#00d4ff" />
+                </View>
+                <View style={{flex:1}}>
+                  <Text style={s.chatTitle} numberOfLines={1}>{chat.title}</Text>
+                  <Text style={s.chatMeta}>{chat.count} messages • {formatTime(chat.time)}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#1a3a6a" />
+              </TouchableOpacity>
+            ))
+          )}
+        </Animated.View>
+
+        {/* Projects Section */}
+        <Animated.View style={{opacity: fadeAnim, paddingHorizontal: 20, marginTop: 20}}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>📁 Projects</Text>
+            <TouchableOpacity onPress={() => navigate('projects')}>
+              <Text style={s.seeAll}>सब देखो →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {projects.length === 0 ? (
+            <TouchableOpacity style={s.emptyChat} onPress={() => navigate('projects')}>
+              <Ionicons name="folder-open-outline" size={24} color="#1a3a6a" />
+              <Text style={s.emptyChatTxt}>Project बनाओ — organized context रखो</Text>
+            </TouchableOpacity>
+          ) : (
+            projects.slice(0,3).map(p => (
+              <TouchableOpacity key={p.id} style={s.chatCard} onPress={() => navigate('projects')}>
+                <View style={[s.chatIcon, {backgroundColor: '#7c3aed22'}]}>
+                  <Ionicons name="folder" size={18} color="#7c3aed" />
+                </View>
+                <View style={{flex:1}}>
+                  <Text style={s.chatTitle} numberOfLines={1}>{p.name}</Text>
+                  <Text style={s.chatMeta}>{p.description || 'No description'}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#1a3a6a" />
+              </TouchableOpacity>
+            ))
+          )}
+
+          <TouchableOpacity style={s.newProjectBtn} onPress={() => navigate('projects')}>
+            <Ionicons name="add" size={18} color="#7c3aed" />
+            <Text style={s.newProjectTxt}>नया Project बनाओ</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <View style={{height: 40}} />
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050918', paddingTop: 50 },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingHorizontal: 25, marginBottom: 25,
-  },
-  greeting: { color: '#4a7aaa', fontSize: 16 },
-  userName: {
-    color: '#ffffff', fontSize: 28,
-    fontWeight: '900', letterSpacing: 1,
-  },
-  subGreeting: { color: '#4a7aaa', fontSize: 14, marginTop: 4 },
-  profileBtn: { alignItems: 'center' },
-  profileCircle: {
-    width: 50, height: 50, borderRadius: 25,
-    backgroundColor: '#00d4ff',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 4,
-  },
-  profileLetter: { color: '#000', fontSize: 22, fontWeight: '900' },
-  profileSub: { color: '#4a7aaa', fontSize: 11 },
-  statusCard: {
-    marginHorizontal: 25, backgroundColor: '#0d1f3c',
-    borderRadius: 16, padding: 20, marginBottom: 25,
-    borderWidth: 1, borderColor: '#1a3a6a',
-  },
-  statusTitle: {
-    color: '#ffffff', fontSize: 18,
-    fontWeight: 'bold', marginBottom: 6,
-  },
-  statusSub: { color: '#4a7aaa', fontSize: 13, marginBottom: 15 },
-  statusBar: {
-    height: 6, backgroundColor: '#1a3a6a',
-    borderRadius: 3, marginBottom: 6,
-  },
-  statusFill: { height: 6, backgroundColor: '#00d4ff', borderRadius: 3 },
-  statusPercent: {
-    color: '#00d4ff', fontSize: 12, textAlign: 'right',
-  },
-  menuGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    paddingHorizontal: 20, marginBottom: 25, gap: 12,
-  },
-  menuItem: {
-    width: '47%', backgroundColor: '#0d1f3c',
-    borderRadius: 16, padding: 20, borderWidth: 1,
-  },
-  menuIcon: { fontSize: 30, marginBottom: 10 },
-  menuTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  menuSub: { color: '#4a7aaa', fontSize: 12 },
-  quickSection: { paddingHorizontal: 25, marginBottom: 40 },
-  sectionTitle: {
-    color: '#ffffff', fontSize: 18,
-    fontWeight: 'bold', marginBottom: 15,
-  },
-  quickItem: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#0d1f3c', borderRadius: 12,
-    padding: 15, marginBottom: 10,
-    borderWidth: 1, borderColor: '#1a3a6a',
-  },
-  quickIcon: { fontSize: 22, marginRight: 12 },
-  quickText: { flex: 1, color: '#ffffff', fontSize: 15 },
-  quickArrow: { color: '#00d4ff', fontSize: 18 },
+const s = StyleSheet.create({
+  container: {flex:1, backgroundColor:'#050918', paddingTop:50},
+  header: {flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:20, marginBottom:20},
+  greeting: {color:'#4a7aaa', fontSize:14},
+  userName: {color:'#fff', fontSize:26, fontWeight:'900'},
+  settingsBtn: {width:42, height:42, borderRadius:21, backgroundColor:'#0d1f3c', justifyContent:'center', alignItems:'center', borderWidth:1, borderColor:'#1a3a6a'},
+  newChatBtn: {flexDirection:'row', alignItems:'center', justifyContent:'center', backgroundColor:'#00d4ff', borderRadius:16, padding:16, marginHorizontal:20, marginBottom:16, gap:10},
+  newChatTxt: {color:'#000', fontSize:16, fontWeight:'800'},
+  quickRow: {flexDirection:'row', paddingHorizontal:20, marginBottom:24, gap:10},
+  quickItem: {flex:1, alignItems:'center', gap:8},
+  quickIcon: {width:52, height:52, borderRadius:16, justifyContent:'center', alignItems:'center', borderWidth:1},
+  quickLabel: {color:'#4a7aaa', fontSize:11, fontWeight:'600'},
+  sectionHeader: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:12},
+  sectionTitle: {color:'#fff', fontSize:16, fontWeight:'800'},
+  seeAll: {color:'#00d4ff', fontSize:13},
+  chatCard: {flexDirection:'row', alignItems:'center', backgroundColor:'#0d1f3c', borderRadius:14, padding:14, marginBottom:8, borderWidth:1, borderColor:'#1a3a6a', gap:12},
+  chatIcon: {width:38, height:38, borderRadius:10, backgroundColor:'#071428', justifyContent:'center', alignItems:'center'},
+  chatTitle: {color:'#fff', fontSize:14, fontWeight:'600'},
+  chatMeta: {color:'#4a7aaa', fontSize:11, marginTop:2},
+  emptyChat: {flexDirection:'row', alignItems:'center', backgroundColor:'#0d1f3c', borderRadius:14, padding:16, marginBottom:8, borderWidth:1, borderColor:'#1a3a6a', gap:12, borderStyle:'dashed'},
+  emptyChatTxt: {color:'#4a7aaa', fontSize:13, flex:1},
+  newProjectBtn: {flexDirection:'row', alignItems:'center', backgroundColor:'#0d1f3c', borderRadius:12, padding:14, borderWidth:1, borderColor:'#7c3aed44', gap:8, marginTop:4},
+  newProjectTxt: {color:'#7c3aed', fontSize:14, fontWeight:'600'},
 });
