@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 const getSystemPrompt = () => {
   const lang = localStorage.getItem('app_language') || 'hinglish';
   if (lang === 'english') return 'You are DRISHTI, a helpful AI assistant. Always reply in English only. Be concise and helpful.';
-  if (lang === 'hindi') return 'तम DRISHTI हो। हमेशा शुद हिंदी में जवाब दो। Short और helpful रहो।';
+  if (lang === 'hindi') return 'तुम DRISHTI हो। हमेशा शुद्ध हिंदी में जवाब दो। Short और helpful रहो।';
   return 'तुम DRISHTI हो - Hindi AI Assistant। Hindi/Hinglish में जवाब दो। Short और helpful रहो।';
 };
 
@@ -130,7 +130,7 @@ export default function ChatScreen({ navigate }) {
     setInput(''); setThinking(true);
     try {
       const reply = await callAPI(text.trim(), historyRef.current);
-      const r = reply || (localStorage.getItem('app_language') === 'english' ? 'Something went wrong. Try again!' : 'कुछ गडबड़ हुई। दोबारा try करें।');
+      const r = reply || (localStorage.getItem('app_language') === 'english' ? 'Something went wrong. Try again!' : 'कुछ गड़बड़ हुई। दोबारा try करें।');
       historyRef.current = [...historyRef.current, { role: 'user', content: text }, { role: 'assistant', content: r }].slice(-20);
       setMessages(prev => [...prev, { id: Date.now() + 1, text: r, sender: 'ai' }]);
       saveToHistory(text.trim(), r); // ✅ SAVE TO HISTORY
@@ -198,7 +198,7 @@ export default function ChatScreen({ navigate }) {
     localStorage.setItem('current_session_id', sid);
     historyRef.current = [];
     const lang = localStorage.getItem('app_language') || 'hinglish';
-    setMessages([{ id: Date.now(), sender: 'ai', text: lang === 'english' ? 'New chat started! Ask me anything.' : 'नई chat शुरू! क्या पछना है?' }]);
+    setMessages([{ id: Date.now(), sender: 'ai', text: lang === 'english' ? 'New chat started! Ask me anything.' : 'नई chat शुरू! क्या पूछना है?' }]);
     setFeedback({}); setInput('');
   };
 
