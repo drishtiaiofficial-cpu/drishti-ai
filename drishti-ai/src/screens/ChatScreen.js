@@ -143,7 +143,9 @@ export default function ChatScreen({ navigate }) {
     setInput(''); setThinking(true);
     try {
       const reply = await callAPI(text.trim(), historyRef.current);
-      const r = reply || (localStorage.getItem('app_language') === 'english' ? 'Something went wrong. Try again!' : 'कुछ गड़बड़ हुई। दोबारा try करें।');
+      // Strip <think> tags (reasoning models like DeepSeek show thinking)
+      const cleaned = (reply || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      const r = cleaned || (localStorage.getItem('app_language') === 'english' ? 'Something went wrong. Try again!' : 'कुछ गड़बड़ हुई। दोबारा try करें।');
       historyRef.current = [...historyRef.current, { role: 'user', content: text }, { role: 'assistant', content: r }].slice(-20);
       setMessages(prev => [...prev, { id: Date.now() + 1, text: r, sender: 'ai' }]);
       saveToHistory(text.trim(), r); // ✅ SAVE TO HISTORY
@@ -215,6 +217,17 @@ export default function ChatScreen({ navigate }) {
     setFeedback({}); setInput('');
   };
 
+  const renderText = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <Text key={i} style={{fontWeight:'900', color:'#fff'}}>{part.slice(2,-2)}</Text>;
+      }
+      return <Text key={i}>{part}</Text>;
+    });
+  };
+
   const showSend = input.trim().length > 0;
   const lang = localStorage.getItem('app_language') || 'hinglish';
 
@@ -238,7 +251,7 @@ export default function ChatScreen({ navigate }) {
           <View key={msg.id}>
             <View style={[s.bubble, msg.sender === 'user' ? s.userBubble : s.aiBubble]}>
               {msg.sender === 'ai' && <Text style={s.aiLabel}>🔮 DRISHTI</Text>}
-              <Text style={msg.sender === 'user' ? s.userTxt : s.aiTxt}>{msg.text}</Text>
+              <Text style={msg.sender === 'user' ? s.userTxt : s.aiTxt}>{msg.sender === 'ai' ? renderText(msg.text) : msg.text}</Text>
             </View>
             {msg.sender === 'ai' && (
               <View style={s.acts}>
