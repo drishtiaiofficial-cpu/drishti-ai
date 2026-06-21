@@ -18,7 +18,9 @@ const getRecentChats = () => {
         count: hist.length,
       });
     }
-    return sessions.sort((a,b) => b.time - a.time).slice(0, 6);
+    // Remove duplicates by id
+    const unique = Array.from(new Map(sessions.map(s => [s.id, s])).values());
+    return unique.sort((a,b) => b.time - a.time).slice(0, 6);
   } catch { return []; }
 };
 
