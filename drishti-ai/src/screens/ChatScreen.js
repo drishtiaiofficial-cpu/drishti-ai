@@ -6,6 +6,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 // ── Language System ──
+const getProjectContext = () => {
+  try { return localStorage.getItem('project_context') || ''; } catch { return ''; }
+};
+
 const getSystemPrompt = () => {
   const lang = localStorage.getItem('app_language') || 'hinglish';
   if (lang === 'english') return `You are DRISHTI, a helpful AI assistant made in India. IMPORTANT RULES:
